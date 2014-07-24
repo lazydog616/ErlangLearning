@@ -4,6 +4,14 @@
 
 %Card_Amount must to be even
 
+% answer to Etude 8 's process asynchronous problem : 
+% considering Erlang process's asyhcronous , so let “Win/Lose" signal sent first to lie
+% in the player process's mailbox first, and then do dealing(Player1, Player2, "Pre_state", [], [], [], 0) to 
+% send "Battle/War" signal to player process mail box, because "Win/Lose" is in front of "Battle/War" in 
+% player's mail box, so "Win/Lose" is processed first, so wouldn't happen the kind of problem that: 
+% "Battle/War" before "Win" bringing cards to the player 
+% with no card in hand, causing this player lose game.
+
 dealing(Card_Amount) ->
     {Shuffled_deck, _} = lists:split(Card_Amount, cards:shuffle(cards:make_deck())),
     {Cards_for_player1, Cards_for_player2} = lists:split(round(Card_Amount/2), Shuffled_deck),
@@ -18,12 +26,12 @@ dealing(Player1, Player2, Play_state, Cards_pile, Player1_card_list, Player2_car
        case lists:flatlength(Cards_pile) of
 
          0 ->
-          io:format("Prestate : Battle ! ~n"), 
+          %io:format("Prestate : Battle ! ~n"), 
            Player1 ! {"Battle"},
            Player2 ! {"Battle"},
            dealing(Player1, Player2, "Await", Cards_pile, Player1_card_list, Player2_card_list, Current_in_playerS);
          _ -> 
-            io:format("Prestate : War ! ~n"),
+           % io:format("Prestate : War ! ~n"),
             Player1 ! {"War"},
            Player2 ! {"War"},
            dealing(Player1, Player2, "Await", Cards_pile, Player1_card_list, Player2_card_list, Current_in_playerS)
@@ -87,7 +95,11 @@ dealing(Player1, Player2, Play_state, Cards_pile, Player1_card_list, Player2_car
              C1 > C2 ->
                Player1 ! {"Win", Player1_card_list ++ Player2_card_list ++ Cards_pile},
                Player2 ! {"Lose"},
-               % considering Erlang process's asyhcronous , should add some condition here
+               % considering Erlang process's asyhcronous , so let “Win/Lose" signal sent first to lie
+               % in the player's mailbox first, and then do dealing(Player1, Player2, "Pre_state", [], [], [], 0) to 
+               % send "Battle/War" signal to player process mail box, because "Win/Lose" is in front of "Battle/War" in 
+               % player's mail box, so wouldn't happen the kind of problem that: Battle before "Win" bringing cards to the player 
+               % with no card currently, and this player lose game because of this. 
                dealing(Player1, Player2, "Pre_state", [], [], [], 0);
                
              C1 < C2 ->
