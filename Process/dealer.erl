@@ -12,6 +12,9 @@
 % "Battle/War" before "Win" bringing cards to the player 
 % with no card in hand, causing this player lose game.
 
+% But message is also asynchronous, so need to find out a way to check if "Win/Lose" is processed before next round's "War/Battle", 
+% add sth around line 100
+
 dealing(Card_Amount) ->
     {Shuffled_deck, _} = lists:split(Card_Amount, cards:shuffle(cards:make_deck())),
     {Cards_for_player1, Cards_for_player2} = lists:split(round(Card_Amount/2), Shuffled_deck),
